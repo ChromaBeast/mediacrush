@@ -137,16 +137,28 @@ mediacrush find-dupes "E:\Movies"
 
 ---
 
-## Desktop GUI
+## Desktop GUI (Cross-Platform Native Apps)
 
-Launch the desktop interface with:
+MediaCrush features a native desktop application for **Windows, macOS, and Linux** built with Flutter Desktop and unslop instrument-grade design standards (clean graphite ramp, quiet chrome, silicon telemetry HUD, and tabular mono metrics).
+
+### Running the Native App
 ```bash
+# Launch directly via CLI launcher
 mediacrush gui
+
+# Or run the native Flutter desktop app in development
+cd desktop
+flutter run -d windows   # On Windows
+flutter run -d macos     # On macOS
+flutter run -d linux     # On Linux
 ```
 
-* **Dark Theme:** Sleek, distraction-free modern UI.
-* **Scan & Estimation:** Live candidate counters, current size, and projected savings.
-* **Real-time Monitoring:** Real-time speed indicator (fps / multiplier) and progress tracking.
+### Building Standalone Distributables
+Automated build scripts are provided for all 3 OSs:
+
+* **Windows:** Run `.\build_desktop.ps1` (outputs to `dist/MediaCrush-Windows-x64/MediaCrush.exe`)
+* **macOS:** Run `./build_desktop_macos.sh` (outputs to `dist/MediaCrush.app`)
+* **Linux:** Run `./build_desktop_linux.sh` (outputs to `dist/MediaCrush-Linux-x64/mediacrush-app`)
 
 ---
 

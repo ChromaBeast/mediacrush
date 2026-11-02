@@ -41,3 +41,8 @@ desktop.ini
 .pytest_cache/
 htmlcov/
 .coverage
+
+# Flutter Desktop
+desktop/build/
+desktop/.dart_tool/
+desktop/.flutter-plugins-dependencies
