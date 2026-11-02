@@ -22,5 +22,9 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 
+[tool.setuptools.packages.find]
+include = ["mediacrush*"]
+exclude = ["desktop*", "tests*"]
+
 [project.scripts]
 mediacrush = "mediacrush.cli.main:main"
