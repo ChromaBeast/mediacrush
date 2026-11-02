@@ -9,7 +9,11 @@ flutter build linux --release
 # 1. Portable Tarball
 mkdir -p ../dist/MediaCrush-Linux-x64
 cp -r build/linux/x64/release/bundle/* ../dist/MediaCrush-Linux-x64/
-cp mediacrush.png ../dist/MediaCrush-Linux-x64/
+if [ -f linux/mediacrush.png ]; then
+  cp linux/mediacrush.png ../dist/MediaCrush-Linux-x64/
+elif [ -f ../assets/logo_256.png ]; then
+  cp ../assets/logo_256.png ../dist/MediaCrush-Linux-x64/mediacrush.png
+fi
 tar -czf ../dist/MediaCrush-Linux-x64.tar.gz -C ../dist MediaCrush-Linux-x64
 
 # 2. Debian .deb package
@@ -21,8 +25,14 @@ mkdir -p "$DEB_DIR/usr/share/icons/hicolor/256x256/apps"
 mkdir -p "$DEB_DIR/DEBIAN"
 
 cp -r build/linux/x64/release/bundle/* "$DEB_DIR/usr/lib/mediacrush/"
-ln -sf /usr/lib/mediacrush/mediacrush-app "$DEB_DIR/usr/bin/mediacrush-app"
-cp mediacrush.png "$DEB_DIR/usr/share/icons/hicolor/256x256/apps/mediacrush.png"
+if [ -f "$DEB_DIR/usr/lib/mediacrush/mediacrush-app" ]; then
+  ln -sf /usr/lib/mediacrush/mediacrush-app "$DEB_DIR/usr/bin/mediacrush-app"
+fi
+if [ -f linux/mediacrush.png ]; then
+  cp linux/mediacrush.png "$DEB_DIR/usr/share/icons/hicolor/256x256/apps/mediacrush.png"
+elif [ -f ../assets/logo_256.png ]; then
+  cp ../assets/logo_256.png "$DEB_DIR/usr/share/icons/hicolor/256x256/apps/mediacrush.png"
+fi
 
 cat << 'EOF' > "$DEB_DIR/usr/share/applications/mediacrush.desktop"
 [Desktop Entry]
