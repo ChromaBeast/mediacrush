@@ -53,8 +53,13 @@ class TranscodeEngine:
         SafetyManager.cleanup_staging(staging)
 
         # Assemble FFmpeg arguments
-        encoder_args = PresetManager.build_ffmpeg_args(encoder, preset_key)
-        cmd = ["ffmpeg", "-y", "-i", str(meta.path)] + encoder_args + [str(staging)]
+        encoder_args = PresetManager.build_ffmpeg_args(encoder, preset_key, meta=meta)
+        cmd = ["ffmpeg", "-y"]
+        if encoder.hwaccel and encoder.encoder_name not in {"hevc_vaapi", "av1_vaapi"}:
+            cmd.extend(["-hwaccel", "auto"])
+        cmd.extend(["-i", str(meta.path)])
+        cmd.extend(encoder_args)
+        cmd.append(str(staging))
 
         try:
             self._current_process = subprocess.Popen(

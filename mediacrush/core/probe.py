@@ -33,6 +33,9 @@ class MediaMetadata:
     overall_bitrate: int
     audio_streams: List[StreamInfo] = field(default_factory=list)
     subtitle_streams: List[StreamInfo] = field(default_factory=list)
+    hdr_format: Optional[str] = None
+    color_primaries: str = "unknown"
+    color_transfer: str = "unknown"
 
     @property
     def resolution_label(self) -> str:
@@ -116,6 +119,20 @@ class MediaProbe:
             elif c_type == "subtitle":
                 subs.append(StreamInfo(idx, c_type, codec, lang, title))
 
+        color_primaries = v_stream.get("color_primaries", "unknown")
+        color_transfer = v_stream.get("color_trc", "unknown")
+        hdr_format = None
+        for sd in v_stream.get("side_data_list", []):
+            sd_type = str(sd.get("side_data_type", "")).lower()
+            if "dolby vision" in sd_type or "dovi" in sd_type:
+                hdr_format = "DolbyVision"
+                break
+            if "hdr10+" in sd_type or "hdr dynamic" in sd_type:
+                hdr_format = "HDR10+"
+                break
+        if not hdr_format and color_primaries == "bt2020" and color_transfer in {"smpte2084", "arib-std-b67"}:
+            hdr_format = "HDR10"
+
         return MediaMetadata(
             path=path_obj,
             duration_seconds=duration,
@@ -127,5 +144,8 @@ class MediaProbe:
             video_bitrate=video_bitrate,
             overall_bitrate=overall_bitrate,
             audio_streams=audios,
-            subtitle_streams=subs
+            subtitle_streams=subs,
+            hdr_format=hdr_format,
+            color_primaries=color_primaries,
+            color_transfer=color_transfer,
         )

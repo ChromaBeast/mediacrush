@@ -1,8 +1,9 @@
 """Recursive library scanner with smart bloat detection and skip logic."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+import json
 from pathlib import Path
-from typing import List, Tuple
+from typing import Dict, List, Optional, Tuple
 from mediacrush.core.probe import MediaMetadata, MediaProbe
 
 
@@ -13,6 +14,7 @@ class CandidateFile:
     reason: str
     estimated_size_bytes: int
     potential_savings_bytes: int
+    local_preset: Optional[str] = None
 
     @property
     def savings_percent(self) -> float:
@@ -30,6 +32,7 @@ class ScanReport:
     skipped_count: int
     total_current_bytes: int
     total_estimated_bytes: int
+    local_configs: Dict[str, dict] = field(default_factory=dict)
 
     @property
     def total_savings_bytes(self) -> int:
@@ -40,15 +43,27 @@ class LibraryScanner:
     """Traverses folder structures and evaluates optimization candidates."""
 
     SUPPORTED_EXTS = {".mkv", ".mp4", ".avi", ".mov", ".m4v", ".webm", ".ts"}
+    CONFIG_NAME = ".mediacrush.json"
 
     @classmethod
-    def should_skip(cls, meta: MediaMetadata) -> Tuple[bool, str]:
+    def load_folder_config(cls, folder: Path) -> dict:
+        """Loads optional per-folder .mediacrush.json configuration."""
+        cfg_path = folder / cls.CONFIG_NAME
+        if cfg_path.is_file():
+            try:
+                return json.loads(cfg_path.read_text(encoding="utf-8"))
+            except Exception:
+                return {}
+        return {}
+
+    @classmethod
+    def should_skip(cls, meta: MediaMetadata, skip_already_hevc: bool = True) -> Tuple[bool, str]:
         """Determines if a file is already sufficiently compressed."""
         codec = meta.video_codec.lower()
         br_mbps = (meta.video_bitrate or meta.overall_bitrate) / 1_000_000
 
         # Modern codecs already compressed reasonably
-        if codec in {"hevc", "h265", "av1"}:
+        if skip_already_hevc and codec in {"hevc", "h265", "av1"}:
             if meta.resolution_label == "4K" and br_mbps < 15.0:
                 return True, "Already efficient 4K HEVC/AV1"
             if meta.resolution_label == "1080p" and br_mbps < 4.2:
@@ -91,24 +106,32 @@ class LibraryScanner:
                     files_to_check.append(p)
 
         candidates: List[CandidateFile] = []
+        folder_configs: Dict[str, dict] = {}
         skipped = 0
         total_curr = 0
         total_est = 0
 
         for f in files_to_check:
+            folder_key = str(f.parent)
+            if folder_key not in folder_configs:
+                folder_configs[folder_key] = cls.load_folder_config(f.parent)
+            local_cfg = folder_configs[folder_key]
+
             meta = MediaProbe.inspect(f)
             if not meta:
                 continue
 
-            skip, reason = cls.should_skip(meta)
+            skip_hevc = local_cfg.get("skip_already_hevc", True)
+            skip, reason = cls.should_skip(meta, skip_already_hevc=skip_hevc)
             if skip:
                 skipped += 1
                 continue
 
             est_size = cls.estimate_savings(meta)
             savings = max(0, meta.file_size_bytes - est_size)
-            candidates.append(CandidateFile(meta, reason, est_size, savings))
+            preset_override = local_cfg.get("preset")
+            candidates.append(CandidateFile(meta, reason, est_size, savings, preset_override))
             total_curr += meta.file_size_bytes
             total_est += est_size
 
-        return ScanReport(target, candidates, skipped, total_curr, total_est)
+        return ScanReport(target, candidates, skipped, total_curr, total_est, folder_configs)

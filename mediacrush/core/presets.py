@@ -1,8 +1,9 @@
 """Encoding presets and rate-control parameters for all hardware backends."""
 
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Optional
 from mediacrush.core.hardware import EncoderInfo
+from mediacrush.core.probe import MediaMetadata
 
 
 @dataclass
@@ -43,7 +44,12 @@ class PresetManager:
     }
 
     @classmethod
-    def build_ffmpeg_args(cls, encoder: EncoderInfo, preset_key: str = "anime") -> List[str]:
+    def build_ffmpeg_args(
+        cls,
+        encoder: EncoderInfo,
+        preset_key: str = "anime",
+        meta: Optional[MediaMetadata] = None,
+    ) -> List[str]:
         """Generates the optimal FFmpeg arguments for the selected encoder."""
         preset = cls.PRESETS.get(preset_key, cls.PRESETS["anime"])
         args: List[str] = ["-map", "0"]  # Include all video, audio, and subtitle streams
@@ -79,6 +85,33 @@ class PresetManager:
             args.extend([
                 "-quality", "100"
             ])
+        elif encoder.encoder_name in {"hevc_videotoolbox", "av1_videotoolbox"}:
+            # Apple VideoToolbox (Apple Silicon M-series & Intel Macs)
+            q_val = 70 if preset_key == "anime" else (65 if preset_key == "film" else 55)
+            args.extend([
+                "-q:v", str(q_val),
+                "-tag:v", "hvc1",
+                "-realtime", "0",
+                "-spatial_aq", "1",
+                "-allow_sw", "1"
+            ])
+            if meta and (meta.hdr_format or preset.tune_animation):
+                args.extend(["-profile:v", "main10", "-pix_fmt", "p010le"])
+        elif encoder.encoder_name == "h264_videotoolbox":
+            # Apple VideoToolbox H.264 (Legacy Intel Macs)
+            q_val = 70 if preset_key == "anime" else (65 if preset_key == "film" else 55)
+            args.extend([
+                "-q:v", str(q_val),
+                "-realtime", "0"
+            ])
+        elif encoder.encoder_name in {"hevc_vaapi", "av1_vaapi"}:
+            # Linux VAAPI (AMD Radeon & Intel on Linux)
+            args.extend([
+                "-vaapi_device", "/dev/dri/renderD128",
+                "-vf", "format=nv12,hwupload",
+                "-rc_mode", "CQP",
+                "-qp", str(preset.nvenc_cq)
+            ])
         elif encoder.encoder_name == "libx265":
             args.extend([
                 "-preset", "slow",
@@ -91,6 +124,19 @@ class PresetManager:
                 "-preset", "5",
                 "-crf", str(preset.cpu_crf + 2)
             ])
+
+        # HDR passthrough flags if source has HDR
+        if meta and meta.hdr_format:
+            args.extend([
+                "-color_primaries", meta.color_primaries,
+                "-color_trc", meta.color_transfer,
+                "-colorspace", "bt2020nc",
+            ])
+            if encoder.encoder_name == "libx265":
+                args.extend([
+                    "-x265-params",
+                    "hdr-opt=1:repeat-headers=1:colorprim=bt2020:transfer=smpte2084:colormatrix=bt2020nc"
+                ])
 
         # 2. Perfect lossless preservation of audio, subtitles, and metadata
         args.extend([

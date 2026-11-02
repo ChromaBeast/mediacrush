@@ -10,11 +10,13 @@ It safely shrinks bloated video files (such as raw WEB-DLs taking 1.8 GB per epi
 
 | Vendor / Architecture | Target Platform | Hardware Encoder |
 | :--- | :--- | :--- |
-| **NVIDIA GPU** | GeForce GTX/RTX, Ada Lovelace | `hevc_nvenc`, `av1_nvenc` |
-| **AMD GPU / APU** | Radeon RX, RDNA 2/3, Radeon 700M/800M | `hevc_amf`, `av1_amf` |
-| **Intel GPU / iGPU** | Arc, Iris Xe, Core Ultra | `hevc_qsv`, `av1_qsv` |
+| **Apple Silicon (M1–M4)** | macOS (MacBook Pro/Air, Mac Studio/mini) | `hevc_videotoolbox`, `av1_videotoolbox` |
+| **Intel Mac (Iris/Radeon)** | macOS (Intel MacBook Pro, iMac) | `hevc_videotoolbox`, `h264_videotoolbox` |
+| **NVIDIA GPU** | GeForce GTX/RTX, Ada Lovelace (Windows & Linux) | `hevc_nvenc`, `av1_nvenc` |
+| **AMD GPU / APU** | Radeon RX, RDNA 2/3 (Windows & Linux) | `hevc_amf`, `hevc_vaapi` |
+| **Intel GPU / iGPU** | Arc, Iris Xe, Core Ultra (Windows & Linux) | `hevc_qsv`, `hevc_vaapi` |
 | **Snapdragon X Elite / X Plus** | Qualcomm Adreno (Windows on ARM64) | `hevc_mf`, `av1_mf` |
-| **Multi-Core CPU** | AMD Ryzen, Intel Core, Apple Silicon | `libx265`, `libsvtav1` |
+| **Multi-Core CPU** | AMD Ryzen, Intel Core, Apple Silicon (Universal) | `libx265`, `libsvtav1` |
 
 ---
 
