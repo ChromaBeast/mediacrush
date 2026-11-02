@@ -8,35 +8,75 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build-windows-x64:
+    name: Windows x64 (CLI + Flutter Desktop Installer)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Python x64
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           architecture: "x64"
-      - name: Build Windows x64 Binary
+          cache: "pip"
+
+      - name: Build Windows x64 CLI
         run: |
           python -m pip install --upgrade pip pyinstaller -e .
           pyinstaller --onefile --name mediacrush-windows-x64 --hidden-import mediacrush.gui.app --hidden-import mediacrush.gui.worker --hidden-import mediacrush.gui.components mediacrush_launcher.py
-      - name: Upload Windows x64 Artifact
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+
+      - name: Build Windows Flutter Desktop
+        run: |
+          cd desktop
+          flutter pub get
+          flutter build windows --release
+
+      - name: Assemble Windows Desktop Staging Directory
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist\MediaCrush-Windows-x64 | Out-Null
+          Copy-Item -Path "desktop\build\windows\x64\runner\Release\*" -Destination "dist\MediaCrush-Windows-x64" -Recurse -Force
+
+      - name: Compile Inno Setup Windows Installer
+        shell: pwsh
+        run: |
+          if (-not (Get-Command iscc -ErrorAction SilentlyContinue)) {
+            choco install innosetup -y
+            $env:Path += ";C:\Program Files (x86)\Inno Setup 6"
+          }
+          iscc scripts\windows_installer.iss
+
+      - name: Upload Windows x64 Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: binary-windows-x64
-          path: dist/mediacrush-windows-x64.exe
+          name: windows-x64-binaries
+          path: |
+            dist/mediacrush-windows-x64.exe
+            dist/MediaCrush-Windows-Setup-x64.exe
 
   build-windows-x86:
+    name: Windows x86 (Legacy 32-bit CLI)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python x86 (32-bit)
+      - name: Set up Python x86
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           architecture: "x86"
+          cache: "pip"
       - name: Build Windows x86 Binary
         run: |
           python -m pip install --upgrade pip pyinstaller -e .
@@ -44,10 +84,11 @@ jobs:
       - name: Upload Windows x86 Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: binary-windows-x86
+          name: windows-x86-binary
           path: dist/mediacrush-windows-x86.exe
 
   build-windows-arm64:
+    name: Windows ARM64 (Snapdragon X CLI)
     runs-on: windows-11-arm
     continue-on-error: true
     steps:
@@ -64,10 +105,11 @@ jobs:
       - name: Upload Windows ARM64 Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: binary-windows-arm64
+          name: windows-arm64-binary
           path: dist/mediacrush-windows-arm64.exe
 
   build-linux-x86_64:
+    name: Linux x86_64 (CLI + Desktop Bundle)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -75,18 +117,34 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Build Linux x86_64 Binary
+          cache: "pip"
+      - name: Build Linux x86_64 CLI
         run: |
           python -m pip install --upgrade pip pyinstaller -e .
           pyinstaller --onefile --name mediacrush-linux-x86_64 --hidden-import mediacrush.gui.app --hidden-import mediacrush.gui.worker --hidden-import mediacrush.gui.components mediacrush_launcher.py
           chmod +x dist/mediacrush-linux-x86_64
-      - name: Upload Linux x86_64 Artifact
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
+      - name: Build Linux Flutter Desktop
+        run: |
+          bash build_desktop_linux.sh
+      - name: Upload Linux x86_64 Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: binary-linux-x86_64
-          path: dist/mediacrush-linux-x86_64
+          name: linux-x86_64-binaries
+          path: |
+            dist/mediacrush-linux-x86_64
+            dist/MediaCrush-Linux-x64.tar.gz
 
   build-linux-arm64:
+    name: Linux ARM64 (aarch64 CLI)
     runs-on: ubuntu-24.04-arm
     continue-on-error: true
     steps:
@@ -103,10 +161,11 @@ jobs:
       - name: Upload Linux ARM64 Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: binary-linux-arm64
+          name: linux-arm64-binary
           path: dist/mediacrush-linux-arm64
 
   build-macos:
+    name: macOS (CLI + Native .dmg Installer)
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -114,28 +173,30 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Build macOS CLI and .app
+          cache: "pip"
+      - name: Build macOS CLI
         run: |
           python -m pip install --upgrade pip pyinstaller -e .
           pyinstaller --onefile --name mediacrush-macos --hidden-import mediacrush.gui.app --hidden-import mediacrush.gui.worker --hidden-import mediacrush.gui.components mediacrush_launcher.py
           chmod +x dist/mediacrush-macos
-          pyinstaller --windowed --name "MediaCrush" --hidden-import mediacrush.gui.app --hidden-import mediacrush.gui.worker --hidden-import mediacrush.gui.components mediacrush_launcher.py
-      - name: Package macOS .dmg
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: "stable"
+          cache: true
+      - name: Build macOS Flutter Desktop and .dmg Installer
         run: |
-          mkdir -p dist/dmg_staging
-          cp -r dist/MediaCrush.app dist/dmg_staging/
-          ln -s /Applications dist/dmg_staging/Applications
-          hdiutil create -volname "MediaCrush" -srcfolder dist/dmg_staging -ov -format UDZO dist/MediaCrush.dmg
-          rm -rf dist/dmg_staging
+          bash build_desktop_macos.sh
       - name: Upload macOS Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: binary-macos
+          name: macos-binaries
           path: |
-            dist/MediaCrush.dmg
             dist/mediacrush-macos
+            dist/MediaCrush-macOS-Universal.dmg
 
   publish:
+    name: Publish Release Assets
     runs-on: ubuntu-latest
     if: always()
     needs:

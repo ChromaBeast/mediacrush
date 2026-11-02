@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="cyanGrad" x1="80" y1="80" x2="432" y2="432" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="60%" stop-color="#0EA5E9"/>
+      <stop offset="100%" stop-color="#0284C7"/>
+    </linearGradient>
+    <linearGradient id="coreGrad" x1="160" y1="160" x2="352" y2="352" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1E222B"/>
+      <stop offset="100%" stop-color="#0F1116"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Left Compression Jaw -->
+  <path d="M 120 110 L 230 220 L 230 292 L 120 402 L 72 364 L 162 256 L 72 148 Z" fill="url(#cyanGrad)"/>
+
+  <!-- Right Compression Jaw -->
+  <path d="M 392 110 L 282 220 L 282 292 L 392 402 L 440 364 L 350 256 L 440 148 Z" fill="url(#cyanGrad)"/>
+
+  <!-- Center Titanium Crystal Core -->
+  <polygon points="256,168 328,256 256,344 184,256" fill="url(#coreGrad)" stroke="#38BDF8" stroke-width="8" stroke-linejoin="round"/>
+
+  <!-- Precision High-Density Play Core -->
+  <polygon points="242,222 284,256 242,290" fill="#FFFFFF"/>
+</svg>
