@@ -5,7 +5,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
 import 'media_row_item.dart';
 
-/// Virtualized data table displaying media candidates and their compression progress.
+/// Data table displaying media queue, progress, and output location actions.
 class MediaTable extends StatelessWidget {
   const MediaTable({super.key});
 
@@ -48,9 +48,9 @@ class MediaTable extends StatelessWidget {
           SizedBox(width: 70, child: Text('CODEC', style: AppTypography.label)),
           SizedBox(width: 60, child: Text('RES', style: AppTypography.label)),
           SizedBox(width: 90, child: Text('ORIGINAL', style: AppTypography.label)),
-          SizedBox(width: 90, child: Text('EST. NEW', style: AppTypography.label)),
+          SizedBox(width: 90, child: Text('CRUSHED', style: AppTypography.label)),
           SizedBox(width: 65, child: Text('SAVED', style: AppTypography.label)),
-          SizedBox(width: 100, child: Text('STATUS', style: AppTypography.label)),
+          SizedBox(width: 130, child: Text('STATUS', style: AppTypography.label)),
         ],
       ),
     );
@@ -68,7 +68,7 @@ class MediaTable extends StatelessWidget {
               child: CircularProgressIndicator(strokeWidth: 2.0, color: AppColors.accent),
             ),
             const SizedBox(height: 12.0),
-            Text('Scanning directory tree for media files...', style: AppTypography.bodySecondary),
+            Text('Scanning directory for media files...', style: AppTypography.bodySecondary),
           ],
         ),
       );
@@ -76,9 +76,15 @@ class MediaTable extends StatelessWidget {
 
     if (state.items.isEmpty) {
       return Center(
-        child: Text(
-          'Select a movie or TV show folder above to scan and calculate savings.',
-          style: AppTypography.bodySecondary.copyWith(color: AppColors.textMuted),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.video_library_outlined, size: 40, color: AppColors.textMuted.withValues(alpha: 0.6)),
+            const SizedBox(height: 12.0),
+            Text('No videos in queue', style: AppTypography.subtitle),
+            const SizedBox(height: 4.0),
+            Text('Click "Add Folder" or "Add Videos" above to start optimizing', style: AppTypography.bodySecondary),
+          ],
         ),
       );
     }

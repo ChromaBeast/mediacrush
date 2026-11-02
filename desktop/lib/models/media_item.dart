@@ -17,6 +17,7 @@ class MediaItem {
   int finalBytes;
   double progress;
   MediaStatus status;
+  String? outputPath;
   String? error;
 
   MediaItem({
@@ -29,6 +30,7 @@ class MediaItem {
     this.finalBytes = 0,
     this.progress = 0.0,
     this.status = MediaStatus.pending,
+    this.outputPath,
     this.error,
   });
 

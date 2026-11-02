@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'theme/app_colors.dart';
 import 'widgets/footer/footer_control_bar.dart';
+import 'widgets/header/destination_bar.dart';
 import 'widgets/header/header_bar.dart';
 import 'widgets/stats/summary_stats_grid.dart';
 import 'widgets/table/media_table.dart';
@@ -24,6 +25,7 @@ class MediaCrushApp extends StatelessWidget {
           child: Column(
             children: [
               HeaderBar(),
+              DestinationBar(),
               SummaryStatsGrid(),
               MediaTable(),
               FooterControlBar(),
