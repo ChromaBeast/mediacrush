@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mediacrush"
+version = "1.0.0"
+description = "Universal Hardware-Accelerated Media Optimizer (NVIDIA, AMD, Intel, Qualcomm Snapdragon X, CPU)"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{ name = "Sheersh Jaiswal" }]
+dependencies = [
+    "rich>=13.0.0"
+]
+
+[project.scripts]
+mediacrush = "mediacrush.cli.main:main"
