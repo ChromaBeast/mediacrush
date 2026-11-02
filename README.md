@@ -55,10 +55,18 @@ MediaCrush automatically detects and activates whatever hardware encoding silico
 ## Installation & Downloads
 
 ### Option 1: Standalone Binaries (No Python Required)
-Download the single-file binary for your OS from the **[GitHub Releases](https://github.com/ChromaBeast/mediacrush/releases)** page:
-* **Windows:** `mediacrush.exe`
-* **Linux:** `mediacrush-linux`
-* **macOS:** `mediacrush-macos` (Apple Silicon & Intel)
+Download the native package for your operating system and architecture from the **[GitHub Releases](https://github.com/ChromaBeast/mediacrush/releases)** page:
+
+* **Windows:**
+  * `mediacrush-windows-x64.exe` (Standard 64-bit Intel & AMD)
+  * `mediacrush-windows-arm64.exe` (Qualcomm Snapdragon X Elite / Windows on ARM)
+  * `mediacrush-windows-x86.exe` (Legacy 32-bit PCs)
+* **macOS:**
+  * `MediaCrush.dmg` (Drag-to-Applications installer for Apple Silicon & Intel)
+  * `mediacrush-macos` (Standalone terminal CLI binary)
+* **Linux:**
+  * `mediacrush-linux-x86_64` (Standard 64-bit Intel & AMD)
+  * `mediacrush-linux-arm64` (ARM64 / Raspberry Pi / ARM servers)
 
 ### Option 2: Via Pip / Pipx
 ```bash

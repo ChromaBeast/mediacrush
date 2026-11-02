@@ -9,25 +9,65 @@ permissions:
   contents: write
 
 jobs:
-  build-windows:
+  build-windows-x64:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Set up Python
+      - name: Set up Python x64
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Build Windows Executable
+          architecture: "x64"
+      - name: Build Windows x64 Binary
         run: |
           python -m pip install --upgrade pip pyinstaller -e .
-          pyinstaller --onefile --name mediacrush --hidden-import mediacrush.gui.app --hidden-import mediacrush.gui.worker --hidden-import mediacrush.gui.components mediacrush_launcher.py
-      - name: Upload Windows Artifact
+          pyinstaller --onefile --name mediacrush-windows-x64 --hidden-import mediacrush.gui.app --hidden-import mediacrush.gui.worker --hidden-import mediacrush.gui.components mediacrush_launcher.py
+      - name: Upload Windows x64 Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: binary-windows
-          path: dist/mediacrush.exe
+          name: binary-windows-x64
+          path: dist/mediacrush-windows-x64.exe
 
-  build-linux:
+  build-windows-x86:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python x86 (32-bit)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          architecture: "x86"
+      - name: Build Windows x86 Binary
+        run: |
+          python -m pip install --upgrade pip pyinstaller -e .
+          pyinstaller --onefile --name mediacrush-windows-x86 --hidden-import mediacrush.gui.app --hidden-import mediacrush.gui.worker --hidden-import mediacrush.gui.components mediacrush_launcher.py
+      - name: Upload Windows x86 Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-windows-x86
+          path: dist/mediacrush-windows-x86.exe
+
+  build-windows-arm64:
+    runs-on: windows-11-arm
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ARM64
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          architecture: "arm64"
+      - name: Build Windows ARM64 Binary
+        run: |
+          python -m pip install --upgrade pip pyinstaller -e .
+          pyinstaller --onefile --name mediacrush-windows-arm64 --hidden-import mediacrush.gui.app --hidden-import mediacrush.gui.worker --hidden-import mediacrush.gui.components mediacrush_launcher.py
+      - name: Upload Windows ARM64 Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-windows-arm64
+          path: dist/mediacrush-windows-arm64.exe
+
+  build-linux-x86_64:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -35,16 +75,36 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Build Linux Binary
+      - name: Build Linux x86_64 Binary
         run: |
           python -m pip install --upgrade pip pyinstaller -e .
-          pyinstaller --onefile --name mediacrush-linux --hidden-import mediacrush.gui.app --hidden-import mediacrush.gui.worker --hidden-import mediacrush.gui.components mediacrush_launcher.py
-          chmod +x dist/mediacrush-linux
-      - name: Upload Linux Artifact
+          pyinstaller --onefile --name mediacrush-linux-x86_64 --hidden-import mediacrush.gui.app --hidden-import mediacrush.gui.worker --hidden-import mediacrush.gui.components mediacrush_launcher.py
+          chmod +x dist/mediacrush-linux-x86_64
+      - name: Upload Linux x86_64 Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: binary-linux
-          path: dist/mediacrush-linux
+          name: binary-linux-x86_64
+          path: dist/mediacrush-linux-x86_64
+
+  build-linux-arm64:
+    runs-on: ubuntu-24.04-arm
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Build Linux ARM64 Binary
+        run: |
+          python -m pip install --upgrade pip pyinstaller -e .
+          pyinstaller --onefile --name mediacrush-linux-arm64 --hidden-import mediacrush.gui.app --hidden-import mediacrush.gui.worker --hidden-import mediacrush.gui.components mediacrush_launcher.py
+          chmod +x dist/mediacrush-linux-arm64
+      - name: Upload Linux ARM64 Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-linux-arm64
+          path: dist/mediacrush-linux-arm64
 
   build-macos:
     runs-on: macos-latest
@@ -54,38 +114,53 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Build macOS Binary (Apple Silicon)
+      - name: Build macOS CLI and .app
         run: |
           python -m pip install --upgrade pip pyinstaller -e .
           pyinstaller --onefile --name mediacrush-macos --hidden-import mediacrush.gui.app --hidden-import mediacrush.gui.worker --hidden-import mediacrush.gui.components mediacrush_launcher.py
           chmod +x dist/mediacrush-macos
-      - name: Upload macOS Artifact
+          pyinstaller --windowed --name "MediaCrush" --hidden-import mediacrush.gui.app --hidden-import mediacrush.gui.worker --hidden-import mediacrush.gui.components mediacrush_launcher.py
+      - name: Package macOS .dmg
+        run: |
+          mkdir -p dist/dmg_staging
+          cp -r dist/MediaCrush.app dist/dmg_staging/
+          ln -s /Applications dist/dmg_staging/Applications
+          hdiutil create -volname "MediaCrush" -srcfolder dist/dmg_staging -ov -format UDZO dist/MediaCrush.dmg
+          rm -rf dist/dmg_staging
+      - name: Upload macOS Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: binary-macos
-          path: dist/mediacrush-macos
+          path: |
+            dist/MediaCrush.dmg
+            dist/mediacrush-macos
 
   publish:
     runs-on: ubuntu-latest
-    needs: [build-windows, build-linux, build-macos]
+    if: always()
+    needs:
+      - build-windows-x64
+      - build-windows-x86
+      - build-windows-arm64
+      - build-linux-x86_64
+      - build-linux-arm64
+      - build-macos
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Download all compiled binaries
+      - name: Download all compiled artifacts
         uses: actions/download-artifact@v4
         with:
           path: dist_all
           merge-multiple: true
-      - name: Create GitHub Release
+      - name: Publish All Binaries to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist_all/mediacrush.exe
-            dist_all/mediacrush-linux
-            dist_all/mediacrush-macos
+            dist_all/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and publish to PyPI
