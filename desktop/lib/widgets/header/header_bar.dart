@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
+import '../common/update_dialog.dart';
 import 'hardware_telemetry_hud.dart';
 
 /// Top bar with window branding, directory selector, preset picker, and silicon HUD.
@@ -74,6 +75,22 @@ class HeaderBar extends StatelessWidget {
             ),
           ),
           const Spacer(),
+          if (state.availableUpdate != null) ...[
+            TextButton.icon(
+              onPressed: () => UpdateDialog.show(context, state.availableUpdate!, state.updateService),
+              icon: const Icon(Icons.arrow_circle_up_rounded, color: AppColors.accent, size: 16),
+              label: Text(
+                'v${state.availableUpdate!.latestVersion} Available',
+                style: AppTypography.monoBadge.copyWith(color: AppColors.accent, fontWeight: FontWeight.bold),
+              ),
+              style: TextButton.styleFrom(
+                backgroundColor: AppColors.accent.withValues(alpha: 0.12),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+              ),
+            ),
+            const SizedBox(width: 12.0),
+          ],
           HardwareTelemetryHud(engine: state.hardware),
         ],
       ),

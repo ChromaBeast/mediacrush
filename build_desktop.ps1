@@ -10,6 +10,12 @@ if (Test-Path $OutDir) { Remove-Item -Recurse -Force $OutDir }
 New-Item -ItemType Directory -Force -Path $OutDir | Out-Null
 
 Copy-Item -Path "build\windows\x64\runner\Release\*" -Destination $OutDir -Recurse -Force
+
+# Stage CLI backend binary as mediacrush-cli.exe if built
+if (Test-Path "$PSScriptRoot\dist\mediacrush-windows-x64.exe") {
+    Copy-Item -Path "$PSScriptRoot\dist\mediacrush-windows-x64.exe" -Destination "$OutDir\mediacrush-cli.exe" -Force
+    Write-Host "Staged CLI engine as: $OutDir\mediacrush-cli.exe" -ForegroundColor Green
+}
 Write-Host "Native Windows app assembled in: $OutDir" -ForegroundColor Green
 
 Set-Location -Path $PSScriptRoot

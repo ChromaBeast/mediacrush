@@ -13,6 +13,10 @@ if [ -z "$APP_BUNDLE" ]; then
   exit 1
 fi
 echo "Found app bundle: $APP_BUNDLE, staging as MediaCrush.app..."
+if [ -f ../dist/mediacrush-macos ]; then
+  cp ../dist/mediacrush-macos "$APP_BUNDLE/Contents/MacOS/mediacrush-cli"
+  chmod +x "$APP_BUNDLE/Contents/MacOS/mediacrush-cli"
+fi
 cp -r "$APP_BUNDLE" ../dist/dmg_staging/MediaCrush.app
 ln -s /Applications ../dist/dmg_staging/Applications
 hdiutil create -volname "MediaCrush" -srcfolder ../dist/dmg_staging -ov -format UDZO ../dist/MediaCrush-macOS-Universal.dmg

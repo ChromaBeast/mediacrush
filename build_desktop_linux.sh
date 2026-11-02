@@ -9,6 +9,9 @@ flutter build linux --release
 # 1. Portable Tarball
 mkdir -p ../dist/MediaCrush-Linux-x64
 cp -r build/linux/x64/release/bundle/* ../dist/MediaCrush-Linux-x64/
+if [ -f ../dist/mediacrush-linux-x86_64 ]; then
+  cp ../dist/mediacrush-linux-x86_64 ../dist/MediaCrush-Linux-x64/mediacrush-cli
+fi
 if [ -f linux/mediacrush.png ]; then
   cp linux/mediacrush.png ../dist/MediaCrush-Linux-x64/
 elif [ -f ../assets/logo_256.png ]; then
@@ -25,6 +28,10 @@ mkdir -p "$DEB_DIR/usr/share/icons/hicolor/256x256/apps"
 mkdir -p "$DEB_DIR/DEBIAN"
 
 cp -r build/linux/x64/release/bundle/* "$DEB_DIR/usr/lib/mediacrush/"
+if [ -f ../dist/mediacrush-linux-x86_64 ]; then
+  cp ../dist/mediacrush-linux-x86_64 "$DEB_DIR/usr/lib/mediacrush/mediacrush-cli"
+  chmod +x "$DEB_DIR/usr/lib/mediacrush/mediacrush-cli"
+fi
 if [ -f "$DEB_DIR/usr/lib/mediacrush/mediacrush-app" ]; then
   ln -sf /usr/lib/mediacrush/mediacrush-app "$DEB_DIR/usr/bin/mediacrush-app"
 fi
@@ -47,7 +54,7 @@ EOF
 
 cat << 'EOF' > "$DEB_DIR/DEBIAN/control"
 Package: mediacrush
-Version: 1.0.1
+Version: 1.0.2
 Section: video
 Priority: optional
 Architecture: amd64
@@ -55,7 +62,7 @@ Maintainer: ChromaBeast <sheersh@chromabeast.com>
 Description: Universal Hardware-Accelerated Media Optimizer
 EOF
 
-dpkg-deb --build "$DEB_DIR" ../dist/mediacrush_1.0.1_amd64.deb || true
+dpkg-deb --build "$DEB_DIR" ../dist/mediacrush_1.0.2_amd64.deb || true
 rm -rf "$DEB_DIR"
 
 echo "Linux packages assembled in dist/"

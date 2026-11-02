@@ -3,13 +3,17 @@ import 'package:flutter/foundation.dart';
 import '../models/compression_job.dart';
 import '../models/hardware_engine.dart';
 import '../models/media_item.dart';
+import '../models/update_info.dart';
 import '../services/mediacrush_cli.dart';
+import '../services/update_service.dart';
 
 /// Central state manager for MediaCrush Desktop UI.
 class AppState extends ChangeNotifier {
   final MediaCrushCli _cli = MediaCrushCli();
+  final UpdateService _updateService = UpdateService();
 
   HardwareEngine _hardware = HardwareEngine.fallback();
+  UpdateInfo? _availableUpdate;
   List<MediaItem> _items = [];
   String? _selectedFolder;
   String _preset = 'anime';
@@ -18,6 +22,8 @@ class AppState extends ChangeNotifier {
   CompressionJob? _job;
 
   HardwareEngine get hardware => _hardware;
+  UpdateInfo? get availableUpdate => _availableUpdate;
+  UpdateService get updateService => _updateService;
   List<MediaItem> get items => _items;
   String? get selectedFolder => _selectedFolder;
   String get preset => _preset;
@@ -34,6 +40,16 @@ class AppState extends ChangeNotifier {
   Future<void> initialize() async {
     _hardware = await _cli.detectHardware();
     notifyListeners();
+    // Non-blocking update check
+    _checkForUpdatesSilently();
+  }
+
+  Future<void> _checkForUpdatesSilently() async {
+    final info = await _updateService.checkForUpdates();
+    if (info.isAvailable) {
+      _availableUpdate = info;
+      notifyListeners();
+    }
   }
 
   void setPreset(String newPreset) {

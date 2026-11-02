@@ -48,6 +48,9 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force -Path dist\MediaCrush-Windows-x64 | Out-Null
           Copy-Item -Path "desktop\build\windows\x64\runner\Release\*" -Destination "dist\MediaCrush-Windows-x64" -Recurse -Force
+          if (Test-Path "dist\mediacrush-windows-x64.exe") {
+            Copy-Item -Path "dist\mediacrush-windows-x64.exe" -Destination "dist\MediaCrush-Windows-x64\mediacrush-cli.exe" -Force
+          }
 
       - name: Compile Inno Setup Windows Installer
         shell: pwsh
