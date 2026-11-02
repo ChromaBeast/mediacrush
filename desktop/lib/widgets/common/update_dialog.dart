@@ -3,6 +3,7 @@ import '../../models/update_info.dart';
 import '../../services/update_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
+import 'app_logo.dart';
 
 /// Modal dialog for reviewing and applying an application update.
 class UpdateDialog extends StatefulWidget {
@@ -69,7 +70,7 @@ class _UpdateDialogState extends State<UpdateDialog> {
           children: [
             Row(
               children: [
-                const Icon(Icons.system_update_alt_rounded, color: AppColors.accent, size: 24),
+                const AppLogo(size: 24.0),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../state/app_state.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
+import '../common/app_logo.dart';
 import '../common/update_dialog.dart';
 import 'hardware_telemetry_hud.dart';
 
@@ -33,6 +34,8 @@ class HeaderBar extends StatelessWidget {
       ),
       child: Row(
         children: [
+          const AppLogo(size: 22.0),
+          const SizedBox(width: 10.0),
           Text('MediaCrush', style: AppTypography.title),
           const SizedBox(width: 24.0),
           OutlinedButton.icon(
