@@ -37,8 +37,8 @@ class MediaCrushCli {
   Future<HardwareEngine?> _detectFfmpegEncoder() async {
     final ffmpegBin = await FfmpegLocator.getFfmpegPath();
     final candidates = [
-      if (Platform.isMacOS) 'hevc_videotoolbox',
       if (Platform.isWindows || Platform.isLinux) 'hevc_nvenc',
+      if (Platform.isMacOS) 'hevc_videotoolbox',
       if (Platform.isWindows) 'hevc_amf',
       if (Platform.isWindows || Platform.isLinux) 'hevc_qsv',
       if (Platform.isLinux) 'hevc_vaapi',
@@ -49,12 +49,12 @@ class MediaCrushCli {
         final res = await Process.run(
           ffmpegBin,
           ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'color=c=black:s=256x256:d=0.04', '-frames:v', '1', '-c:v', enc, '-f', 'null', '-'],
-        ).timeout(const Duration(milliseconds: 1500));
+        ).timeout(const Duration(milliseconds: 3500));
         if (res.exitCode == 0) {
           return HardwareEngine.fromCliName(enc);
         }
       } catch (_) {
-        // ffmpeg not found or candidate unsupported
+        // Encoder test failed or timed out
       }
     }
     return null;

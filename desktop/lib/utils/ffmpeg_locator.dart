@@ -15,14 +15,18 @@ abstract final class FfmpegLocator {
     final exeDir = p.dirname(Platform.resolvedExecutable);
     final isWin = Platform.isWindows;
     final binaryName = isWin ? 'ffmpeg.exe' : 'ffmpeg';
+    final localAppData = Platform.environment['LOCALAPPDATA'];
+    final programData = Platform.environment['ProgramData'];
 
     final candidates = [
       p.join(exeDir, binaryName),
       p.join(exeDir, 'tools', binaryName),
       p.join(exeDir, 'lib', binaryName),
       if (Platform.isMacOS) p.join(exeDir, '..', 'Resources', binaryName),
+      if (isWin && localAppData != null) p.join(localAppData, 'Microsoft', 'WinGet', 'Links', binaryName),
+      if (isWin && programData != null) p.join(programData, 'chocolatey', 'bin', binaryName),
       p.join(Directory.current.path, binaryName),
-      binaryName, // System PATH fallback
+      binaryName,
     ];
 
     for (final candidate in candidates) {
@@ -44,12 +48,16 @@ abstract final class FfmpegLocator {
     final exeDir = p.dirname(Platform.resolvedExecutable);
     final isWin = Platform.isWindows;
     final binaryName = isWin ? 'ffprobe.exe' : 'ffprobe';
+    final localAppData = Platform.environment['LOCALAPPDATA'];
+    final programData = Platform.environment['ProgramData'];
 
     final candidates = [
       p.join(exeDir, binaryName),
       p.join(exeDir, 'tools', binaryName),
       p.join(exeDir, 'lib', binaryName),
       if (Platform.isMacOS) p.join(exeDir, '..', 'Resources', binaryName),
+      if (isWin && localAppData != null) p.join(localAppData, 'Microsoft', 'WinGet', 'Links', binaryName),
+      if (isWin && programData != null) p.join(programData, 'chocolatey', 'bin', binaryName),
       p.join(Directory.current.path, binaryName),
       binaryName,
     ];
@@ -78,7 +86,7 @@ abstract final class FfmpegLocator {
       final res = await Process.run(
         executablePath,
         ['-version'],
-      ).timeout(const Duration(seconds: 2));
+      ).timeout(const Duration(seconds: 4));
       return res.exitCode == 0;
     } catch (_) {
       return false;

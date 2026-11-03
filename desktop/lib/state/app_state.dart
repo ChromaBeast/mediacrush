@@ -62,6 +62,16 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  Future<void> redetectHardware() async {
+    _hardware = await _cli.detectHardware();
+    notifyListeners();
+  }
+
+  void setHardware(HardwareEngine engine) {
+    _hardware = engine;
+    notifyListeners();
+  }
+
   void setPreset(String newPreset) {
     _preset = newPreset;
     notifyListeners();
