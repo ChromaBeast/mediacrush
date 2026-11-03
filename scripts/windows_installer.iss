@@ -1,6 +1,6 @@
 ; Inno Setup Script for MediaCrush Native Windows Desktop App
 #define MyAppName "MediaCrush"
-#define MyAppVersion "1.0.3"
+#define MyAppVersion "1.0.4"
 #define MyAppPublisher "ChromaBeast"
 #define MyAppURL "https://github.com/ChromaBeast/mediacrush"
 #define MyAppExeName "MediaCrush.exe"

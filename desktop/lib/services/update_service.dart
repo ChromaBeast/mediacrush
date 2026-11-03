@@ -7,7 +7,7 @@ import '../models/update_info.dart';
 class UpdateService {
   static const String repoOwner = 'ChromaBeast';
   static const String repoName = 'mediacrush';
-  static const String currentVersion = '1.0.3';
+  static const String currentVersion = '1.0.4';
 
   /// Queries GitHub Releases API for the latest published release.
   Future<UpdateInfo> checkForUpdates() async {
