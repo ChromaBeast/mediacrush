@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import '../models/hardware_engine.dart';
+import '../utils/ffmpeg_locator.dart';
 
 /// Real FFmpeg hardware-accelerated transcoding engine with live progress parsing.
 class TranscodeService {
@@ -29,7 +30,8 @@ class TranscodeService {
     );
 
     try {
-      final process = await Process.start('ffmpeg', args);
+      final ffmpegBin = await FfmpegLocator.getFfmpegPath();
+      final process = await Process.start(ffmpegBin, args);
       _activeProcess = process;
 
       process.stderr.transform(utf8.decoder).transform(const LineSplitter()).listen((line) {
@@ -68,7 +70,8 @@ class TranscodeService {
   /// Probes the duration of the media file using ffprobe.
   Future<double> _getDuration(String filePath) async {
     try {
-      final res = await Process.run('ffprobe', [
+      final ffprobeBin = await FfmpegLocator.getFfprobePath();
+      final res = await Process.run(ffprobeBin, [
         '-v', 'error',
         '-show_entries', 'format=duration',
         '-of', 'default=noprint_wrappers=1:nokey=1',

@@ -12,6 +12,10 @@ cp -r build/linux/x64/release/bundle/* ../dist/MediaCrush-Linux-x64/
 if [ -f ../dist/mediacrush-linux-x86_64 ]; then
   cp ../dist/mediacrush-linux-x86_64 ../dist/MediaCrush-Linux-x64/mediacrush-cli
 fi
+if command -v ffmpeg &> /dev/null; then
+  cp "$(which ffmpeg)" ../dist/MediaCrush-Linux-x64/
+  cp "$(which ffprobe)" ../dist/MediaCrush-Linux-x64/
+fi
 if [ -f linux/mediacrush.png ]; then
   cp linux/mediacrush.png ../dist/MediaCrush-Linux-x64/
 elif [ -f ../assets/logo_256.png ]; then
@@ -31,6 +35,11 @@ cp -r build/linux/x64/release/bundle/* "$DEB_DIR/usr/lib/mediacrush/"
 if [ -f ../dist/mediacrush-linux-x86_64 ]; then
   cp ../dist/mediacrush-linux-x86_64 "$DEB_DIR/usr/lib/mediacrush/mediacrush-cli"
   chmod +x "$DEB_DIR/usr/lib/mediacrush/mediacrush-cli"
+fi
+if command -v ffmpeg &> /dev/null; then
+  cp "$(which ffmpeg)" "$DEB_DIR/usr/lib/mediacrush/"
+  cp "$(which ffprobe)" "$DEB_DIR/usr/lib/mediacrush/"
+  chmod +x "$DEB_DIR/usr/lib/mediacrush/ffmpeg" "$DEB_DIR/usr/lib/mediacrush/ffprobe"
 fi
 if [ -f "$DEB_DIR/usr/lib/mediacrush/mediacrush-app" ]; then
   ln -sf /usr/lib/mediacrush/mediacrush-app "$DEB_DIR/usr/bin/mediacrush-app"

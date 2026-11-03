@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import '../models/hardware_engine.dart';
 import '../models/media_item.dart';
+import '../utils/ffmpeg_locator.dart';
 
 /// Bridges the desktop UI with FFmpeg and the MediaCrush CLI engine.
 class MediaCrushCli {
@@ -34,6 +35,7 @@ class MediaCrushCli {
 
   /// Probes hardware encoders directly using ffmpeg 1-frame dummy check.
   Future<HardwareEngine?> _detectFfmpegEncoder() async {
+    final ffmpegBin = await FfmpegLocator.getFfmpegPath();
     final candidates = [
       if (Platform.isMacOS) 'hevc_videotoolbox',
       if (Platform.isWindows || Platform.isLinux) 'hevc_nvenc',
@@ -45,7 +47,7 @@ class MediaCrushCli {
     for (final enc in candidates) {
       try {
         final res = await Process.run(
-          'ffmpeg',
+          ffmpegBin,
           ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'color=c=black:s=256x256:d=0.04', '-frames:v', '1', '-c:v', enc, '-f', 'null', '-'],
         ).timeout(const Duration(milliseconds: 1500));
         if (res.exitCode == 0) {

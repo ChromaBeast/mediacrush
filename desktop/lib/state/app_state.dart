@@ -9,6 +9,7 @@ import '../models/update_info.dart';
 import '../services/mediacrush_cli.dart';
 import '../services/transcode_service.dart';
 import '../services/update_service.dart';
+import '../utils/ffmpeg_locator.dart';
 import '../utils/file_utils.dart';
 
 /// Central state manager for MediaCrush Desktop UI.
@@ -23,10 +24,12 @@ class AppState extends ChangeNotifier {
   String? _selectedFolder;
   String? _outputFolder;
   String _preset = 'anime';
+  bool _hasFfmpeg = true;
   bool _isScanning = false;
   bool _isCompressing = false;
   CompressionJob? _job;
 
+  bool get hasFfmpeg => _hasFfmpeg;
   HardwareEngine get hardware => _hardware;
   UpdateInfo? get availableUpdate => _availableUpdate;
   UpdateService get updateService => _updateService;
@@ -45,6 +48,7 @@ class AppState extends ChangeNotifier {
   double get savingsPercentage => totalOriginalBytes > 0 ? (totalSavedBytes / totalOriginalBytes) * 100.0 : 0.0;
 
   Future<void> initialize() async {
+    _hasFfmpeg = await FfmpegLocator.isFfmpegAvailable();
     _hardware = await _cli.detectHardware();
     notifyListeners();
     _checkForUpdatesSilently();

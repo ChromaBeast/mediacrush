@@ -51,6 +51,20 @@ jobs:
           if (Test-Path "dist\mediacrush-windows-x64.exe") {
             Copy-Item -Path "dist\mediacrush-windows-x64.exe" -Destination "dist\MediaCrush-Windows-x64\mediacrush-cli.exe" -Force
           }
+          # Bundle static FFmpeg & FFprobe into release installer so user has 0 external dependencies
+          $ffmpegCmd = Get-Command ffmpeg -ErrorAction SilentlyContinue
+          $ffprobeCmd = Get-Command ffprobe -ErrorAction SilentlyContinue
+          if ($null -eq $ffmpegCmd) {
+            choco install ffmpeg -y
+            $ffmpegCmd = Get-Command ffmpeg
+            $ffprobeCmd = Get-Command ffprobe
+          }
+          if ($null -ne $ffmpegCmd) {
+            Copy-Item -Path $ffmpegCmd.Source -Destination "dist\MediaCrush-Windows-x64\ffmpeg.exe" -Force
+          }
+          if ($null -ne $ffprobeCmd) {
+            Copy-Item -Path $ffprobeCmd.Source -Destination "dist\MediaCrush-Windows-x64\ffprobe.exe" -Force
+          }
 
       - name: Compile Inno Setup Windows Installer
         shell: pwsh

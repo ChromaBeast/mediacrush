@@ -16,6 +16,19 @@ if (Test-Path "$PSScriptRoot\dist\mediacrush-windows-x64.exe") {
     Copy-Item -Path "$PSScriptRoot\dist\mediacrush-windows-x64.exe" -Destination "$OutDir\mediacrush-cli.exe" -Force
     Write-Host "Staged CLI engine as: $OutDir\mediacrush-cli.exe" -ForegroundColor Green
 }
+
+# Bundle static FFmpeg & FFprobe so user needs zero external dependencies
+$ffmpegCmd = Get-Command ffmpeg -ErrorAction SilentlyContinue
+$ffprobeCmd = Get-Command ffprobe -ErrorAction SilentlyContinue
+
+if ($null -ne $ffmpegCmd) {
+    Copy-Item -Path $ffmpegCmd.Source -Destination "$OutDir\ffmpeg.exe" -Force
+    Write-Host "Bundled ffmpeg.exe into $OutDir" -ForegroundColor Green
+}
+if ($null -ne $ffprobeCmd) {
+    Copy-Item -Path $ffprobeCmd.Source -Destination "$OutDir\ffprobe.exe" -Force
+    Write-Host "Bundled ffprobe.exe into $OutDir" -ForegroundColor Green
+}
 Write-Host "Native Windows app assembled in: $OutDir" -ForegroundColor Green
 
 Set-Location -Path $PSScriptRoot

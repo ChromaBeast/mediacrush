@@ -17,6 +17,11 @@ if [ -f ../dist/mediacrush-macos ]; then
   cp ../dist/mediacrush-macos "$APP_BUNDLE/Contents/MacOS/mediacrush-cli"
   chmod +x "$APP_BUNDLE/Contents/MacOS/mediacrush-cli"
 fi
+if command -v ffmpeg &> /dev/null; then
+  cp "$(which ffmpeg)" "$APP_BUNDLE/Contents/MacOS/ffmpeg"
+  cp "$(which ffprobe)" "$APP_BUNDLE/Contents/MacOS/ffprobe"
+  chmod +x "$APP_BUNDLE/Contents/MacOS/ffmpeg" "$APP_BUNDLE/Contents/MacOS/ffprobe"
+fi
 cp -r "$APP_BUNDLE" ../dist/dmg_staging/MediaCrush.app
 ln -s /Applications ../dist/dmg_staging/Applications
 hdiutil create -volname "MediaCrush" -srcfolder ../dist/dmg_staging -ov -format UDZO ../dist/MediaCrush-macOS-Universal.dmg

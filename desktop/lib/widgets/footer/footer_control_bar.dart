@@ -57,7 +57,7 @@ class FooterControlBar extends StatelessWidget {
                 )
               else
                 FilledButton.icon(
-                  onPressed: state.items.isEmpty ? null : () => state.startCompression(),
+                  onPressed: (state.items.isEmpty || !state.hasFfmpeg) ? null : () => state.startCompression(),
                   icon: const Icon(Icons.play_arrow_rounded, size: 18),
                   label: const Text('Start Compression'),
                   style: FilledButton.styleFrom(
@@ -88,6 +88,9 @@ class FooterControlBar extends StatelessWidget {
   }
 
   String _buildStatusText(AppState state) {
+    if (!state.hasFfmpeg) {
+      return 'Warning: FFmpeg binary not detected. Please ensure FFmpeg is available.';
+    }
     if (state.isScanning) {
       return 'Scanning media files...';
     }
