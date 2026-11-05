@@ -14,6 +14,7 @@ from mediacrush.core.hardware import HardwareDetector
 from mediacrush.core.quality import QualityChecker
 from mediacrush.core.queue import JobQueue, QueueEntry
 from mediacrush.core.reporter import CompressionReporter
+from mediacrush.core.safety import SafetyManager
 from mediacrush.core.scanner import LibraryScanner
 from mediacrush.core.transcoder import TranscodeEngine
 from mediacrush.core.watcher import FolderWatcher
@@ -71,7 +72,7 @@ def _execute_compression_batch(candidates, active_enc, args) -> None:
     for idx, cand in enumerate(candidates, 1):
         f_path = cand.metadata.path
         preset = cand.local_preset or (
-            ContentClassifier.detect(f_path).value if args.preset == "auto" else args.preset
+            ContentClassifier.detect(f_path).preset_key if args.preset == "auto" else args.preset
         )
         console.print(f"\n[bold cyan][{idx}/{len(candidates)}][/bold cyan] Compressing: [white]{f_path.name}[/white] [dim]({preset})[/dim]")
 
@@ -105,9 +106,19 @@ def _execute_compression_batch(candidates, active_enc, args) -> None:
             console.print(f"[bold green][OK] Completed![/bold green] Saved ~{format_bytes(saved)}")
 
             if args.quality_check:
-                score = QualityChecker.score(f_path, f_path)
+                # The source is replaced in place, so compare against the .crushed copy
+                # (side-by-side) or the .bak backup; otherwise there is nothing to compare.
+                if in_place:
+                    original = f_path.with_name(f"{f_path.name}.bak") if args.keep_backup else None
+                    encoded = f_path
+                else:
+                    original = f_path
+                    encoded = SafetyManager.get_output_path(f_path, False)
+                score = QualityChecker.score(original, encoded) if original else None
                 if score:
                     console.print(f"[magenta]Quality:[/magenta] VMAF: {score.vmaf} | SSIM: {score.ssim} ({score.verdict})")
+                elif original is None:
+                    console.print("[dim]Quality check skipped: use --side-by-side or --keep-backup to keep the original.[/dim]")
         else:
             console.print(f"[bold red][FAIL] Failed to optimize {f_path.name}[/bold red]")
 
@@ -119,7 +130,10 @@ def _execute_compression_batch(candidates, active_enc, args) -> None:
 
     if reporter and args.report:
         rep_p = Path(args.report)
-        rep_p.suffix.lower() == ".json" and reporter.write_json(rep_p) or reporter.write_html(rep_p)
+        if rep_p.suffix.lower() == ".json":
+            reporter.write_json(rep_p)
+        else:
+            reporter.write_html(rep_p)
         console.print(f"[cyan]Report written to:[/cyan] {rep_p}")
     console.print(f"\n[bold green]Batch complete![/bold green] Total reclaimed space: [bold green]{format_bytes(total_saved)}[/bold green]")
 

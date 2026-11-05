@@ -63,7 +63,7 @@ EOF
 
 cat << 'EOF' > "$DEB_DIR/DEBIAN/control"
 Package: mediacrush
-Version: 1.0.4
+Version: 1.0.5
 Section: video
 Priority: optional
 Architecture: amd64
@@ -71,7 +71,8 @@ Maintainer: ChromaBeast <sheersh@chromabeast.com>
 Description: Universal Hardware-Accelerated Media Optimizer
 EOF
 
-dpkg-deb --build "$DEB_DIR" ../dist/mediacrush_1.0.4_amd64.deb || true
+dpkg-deb --build "$DEB_DIR" ../dist/mediacrush_1.0.5_amd64.deb || true
+cp ../dist/mediacrush_1.0.5_amd64.deb ../dist/mediacrush_amd64.deb 2>/dev/null || true
 rm -rf "$DEB_DIR"
 
 echo "Linux packages assembled in dist/"

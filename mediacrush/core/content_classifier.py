@@ -1,5 +1,7 @@
 """Automatic media content classification (Animation vs Live-Action)."""
 
+from __future__ import annotations
+
 from enum import Enum
 from pathlib import Path
 import subprocess
@@ -11,7 +13,12 @@ class ContentType(str, Enum):
     """Categorized content types for preset auto-selection."""
     ANIME = "anime"
     LIVE_ACTION = "film"
-    UNKNOWN = "film"
+    UNKNOWN = "unknown"
+
+    @property
+    def preset_key(self) -> str:
+        """Preset to use for this content type; unknown content is treated as live action."""
+        return "anime" if self is ContentType.ANIME else "film"
 
 
 class ContentClassifier:

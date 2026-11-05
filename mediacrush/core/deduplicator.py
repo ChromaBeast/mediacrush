@@ -45,28 +45,19 @@ class DuplicateDetector:
             if meta and meta.duration_seconds > 10:
                 probed.append(meta)
 
-        # Bucket by duration bucket (rounded to nearest 4 seconds)
-        duration_buckets: Dict[int, List[MediaMetadata]] = {}
+        # Cluster by duration: sorted sweep, a file joins the open cluster if within 3s of its first member
+        probed.sort(key=lambda m: m.duration_seconds)
+        clusters: List[List[MediaMetadata]] = []
         for m in probed:
-            bucket_key = int(round(m.duration_seconds / 4.0)) * 4
-            duration_buckets.setdefault(bucket_key, []).append(m)
+            if clusters and abs(clusters[-1][0].duration_seconds - m.duration_seconds) <= 3.0:
+                clusters[-1].append(m)
+            else:
+                clusters.append([m])
 
         groups: List[DuplicateGroup] = []
         res_rank = {"4K": 3, "1080p": 2, "720p": 1}
 
-        for _, bucket in duration_buckets.items():
-            if len(bucket) < 2:
-                continue
-
-            # Within duration bucket, match if durations are within 3s
-            cluster: List[MediaMetadata] = []
-            for item in bucket:
-                if not cluster:
-                    cluster.append(item)
-                else:
-                    if abs(cluster[0].duration_seconds - item.duration_seconds) <= 3.0:
-                        cluster.append(item)
-
+        for cluster in clusters:
             if len(cluster) >= 2:
                 # Pick best: highest resolution rank, then largest file
                 sorted_files = sorted(
