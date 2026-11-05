@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from html import escape
 import json
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -79,11 +80,11 @@ class CompressionReporter:
         output_path.write_text(html, encoding="utf-8")
 
     @staticmethod
-    def _fmt(b: int) -> str:
+    def _fmt(b: float) -> str:
         for unit in ("B", "KB", "MB", "GB"):
             if b < 1024:
                 return f"{b:.1f} {unit}"
-            b //= 1024
+            b /= 1024
         return f"{b:.1f} TB"
 
     @staticmethod
@@ -92,7 +93,7 @@ class CompressionReporter:
         orig = CompressionReporter._fmt(e.original_bytes)
         final = CompressionReporter._fmt(e.final_bytes)
         return (
-            f"<tr><td>{e.file}</td><td>{orig}</td><td>{final}</td>"
-            f"<td>{e.savings_pct:.1f}%</td><td>{e.encoder}</td>"
+            f"<tr><td>{escape(e.file)}</td><td>{orig}</td><td>{final}</td>"
+            f"<td>{e.savings_pct:.1f}%</td><td>{escape(e.encoder)}</td>"
             f"<td>{e.duration_s:.1f}</td><td>{status}</td></tr>\n"
         )

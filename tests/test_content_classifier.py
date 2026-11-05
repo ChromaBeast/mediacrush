@@ -12,7 +12,8 @@ class TestContentClassifier(unittest.TestCase):
         """Verifies enum preset mappings."""
         self.assertEqual(ContentType.ANIME.value, "anime")
         self.assertEqual(ContentType.LIVE_ACTION.value, "film")
-        self.assertEqual(ContentType.UNKNOWN.value, "film")
+        self.assertEqual(ContentType.UNKNOWN.value, "unknown")
+        self.assertEqual(ContentType.UNKNOWN.preset_key, "film")
 
     def test_analyze_frame_ppm_flat_colors(self):
         """Synthetic PPM with flat colors should have low unique color ratio."""
