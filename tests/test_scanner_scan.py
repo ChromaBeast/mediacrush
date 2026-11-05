@@ -15,7 +15,7 @@ def scan(tmp_path, mapping):
         p = tmp_path / rel
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_bytes(b"x")
-    with patch("mediacrush.core.scanner.MediaProbe.inspect", side_effect=lambda p: mapping.get(str(p.relative_to(tmp_path)))):
+    with patch("mediacrush.core.scanner.MediaProbe.inspect", side_effect=lambda p: mapping.get(p.relative_to(tmp_path).as_posix())):
         return LibraryScanner.scan_path(tmp_path)
 
 
